@@ -155,6 +155,62 @@ static const uint8_t blue[] = {0x00, 0x00, 0xFF};
 static const uint8_t white[] = WHITE;
 static const uint8_t part_black[] = BLACK;
 
+
+
+
+
+/*************** Calibration Effect *******************/
+
+static void calibrationEffect(uint8_t buffer[][3], bool reset) {
+
+  static int bsActiveId = -1;
+  static const int NBR_BS = 4;
+
+    // Reset LEDs if necessary
+    if (reset) {
+        for (int i = 0; i < NBR_BS; i++) {
+            buffer[i][0] = 0;
+            buffer[i][1] = 0;
+            buffer[i][2] = 0;
+        }
+        return;
+    }
+
+    
+    if (bsActiveId < 0) {
+        bsActiveId = logGetVarId("lighthouse", "bsActive");
+        if (bsActiveId < 0) {
+            return; 
+        }
+    }
+
+    uint32_t bsActive = (uint32_t)logGetUint(bsActiveId);
+
+
+    bool LH1 = bsActive & 0b0001;
+    bool LH2 = bsActive & 0b0010;
+    bool LH3 = bsActive & 0b0100;
+    bool LH4 = bsActive & 0b1000;
+
+    buffer[0][0] = 0;
+    buffer[0][1] = LH1 ? 255 : 0;
+    buffer[0][2] = 0;
+
+    buffer[1][0] = 0;
+    buffer[1][1] = LH2 ? 255 : 0;
+    buffer[1][2] = 0;
+
+    buffer[2][0] = LH3 ? 0 : 255;
+    buffer[2][1] = LH3 ? 255 : 0;
+    buffer[2][2] = 0;
+
+    buffer[3][0] = LH4 ? 0 : 255;
+    buffer[3][1] = LH4 ? 255 : 0;
+    buffer[3][2] = 0;
+  
+}
+
+
 /**************** Black (LEDs OFF) ***************/
 
 static void blackEffect(uint8_t buffer[][3], bool reset)
@@ -974,6 +1030,7 @@ Ledring12Effect effectsFct[] =
   locSrvStatus,
   timeMemEffect,
   lighthouseEffect,
+  calibrationEffect,
 };
 
 /********** Light signal overriding **********/
