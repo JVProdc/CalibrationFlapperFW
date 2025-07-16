@@ -460,7 +460,6 @@ static void usdInit(DeckInfo *info)
     logBufferMutex = xSemaphoreCreateMutex();
     shutdownMutex = xSemaphoreCreateMutex();
 
-    /* try to mount drives before creating the tasks */
     if (f_mount(&FatFs, "", 1) == FR_OK) {
       DEBUG_PRINT("mount SD-Card [OK].\n");
 

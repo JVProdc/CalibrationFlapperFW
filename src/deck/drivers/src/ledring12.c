@@ -164,7 +164,12 @@ static const uint8_t part_black[] = BLACK;
 static void calibrationEffect(uint8_t buffer[][3], bool reset) {
 
   static int bsActiveId = -1;
-  static const int NBR_BS = 4;
+  static const int NBR_BS = CONFIG_DECK_LEDRING_NBR_LEDS;
+
+ 
+  static int vbatid;
+  float vbat;
+  static float emptyCharge = 6.8, fullCharge = 8.4;
 
     // Reset LEDs if necessary
     if (reset) {
@@ -184,6 +189,11 @@ static void calibrationEffect(uint8_t buffer[][3], bool reset) {
         }
     }
 
+    
+
+    vbatid = logGetVarId("pm", "vbat");
+    vbat = logGetFloat(vbatid);
+
     uint32_t bsActive = (uint32_t)logGetUint(bsActiveId);
 
 
@@ -192,21 +202,29 @@ static void calibrationEffect(uint8_t buffer[][3], bool reset) {
     bool LH3 = bsActive & 0b0100;
     bool LH4 = bsActive & 0b1000;
 
-    buffer[0][0] = 0;
-    buffer[0][1] = LH1 ? 255 : 0;
+    buffer[0][0] = LH1 ? 0 : 64;
+    buffer[0][1] = LH1 ? 64 : 0;
     buffer[0][2] = 0;
 
-    buffer[1][0] = 0;
-    buffer[1][1] = LH2 ? 255 : 0;
+    buffer[1][0] = LH2 ? 0 : 64;
+    buffer[1][1] = LH2 ? 64 : 0;
     buffer[1][2] = 0;
 
-    buffer[2][0] = LH3 ? 0 : 255;
-    buffer[2][1] = LH3 ? 255 : 0;
+    buffer[2][0] = LH3 ? 0 : 64;
+    buffer[2][1] = LH3 ? 64 : 0;
     buffer[2][2] = 0;
 
-    buffer[3][0] = LH4 ? 0 : 255;
-    buffer[3][1] = LH4 ? 255 : 0;
+    buffer[3][0] = LH4 ? 0 : 64;
+    buffer[3][1] = LH4 ? 64 : 0;
     buffer[3][2] = 0;
+
+
+
+    buffer[4][0] = LIMIT(LINSCALE(emptyCharge, fullCharge, 128, 0, vbat)); // Red (emtpy)
+    buffer[4][1] = 0; // Green
+    buffer[4][2] = LIMIT(LINSCALE(emptyCharge, fullCharge, 0, 128, vbat)); // Blue (charged)
+
+
   
 }
 
@@ -1231,6 +1249,7 @@ PARAM_GROUP_START(ring)
  * | 16 | Status Localization Service   | \n
  * | 17 | LED timing from memory        | \n
  * | 18 | Lighthouse  Positioning       | \n
+ * | 19 | Calibration  effect           | \n
  */
 PARAM_ADD_CORE(PARAM_UINT8 | PARAM_PERSISTENT, effect, &effect)
 
